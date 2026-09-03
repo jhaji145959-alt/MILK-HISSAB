@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="hi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Milk Hisab</title>
+
+<style>
+*{box-sizing:border-box}
+body{
+  margin:0;
+  font-family:Arial,sans-serif;
+  background:#f3f6fa;
+  color:#172033;
+}
+header{
+  background:#173b70;
+  color:white;
+  padding:18px 15px;
+  text-align:center;
+}
+header h1{margin:0;font-size:25px}
+header p{margin:5px 0 0;font-size:13px}
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:15px;
+}
+.card{
+  background:white;
+  border-radius:14px;
+  padding:18px;
+  margin-bottom:15px;
+  box-shadow:0 3px 12px #00000012;
+}
+h2{margin-top:0;font-size:20px}
+.grid{
+  display:grid;
+  grid-template-columns:repeat(2,1fr);
+  gap:12px;
+}
+label{
+  display:block;
+  font-weight:bold;
+  font-size:14px;
+  margin-bottom:5px;
+}
+input,select,button{
+  width:100%;
+  padding:12px;
+  border-radius:9px;
+  border:1px solid #ccd4df;
+  font-size:15px;
+}
+button{
+  border:0;
+  background:#173b70;
+  color:white;
+  font-weight:bold;
+  cursor:pointer;
+}
+button:hover{opacity:.9}
+.btn-green{background:#16834b}
+.btn-red{background:#c93636}
+.btn-gray{background:#657184}
+.btn-orange{background:#d87800}
+.actions{
+  display:grid;
+  grid-template-columns:repeat(4,1fr);
+  gap:8px;
+  margin-top:12px;
+}
+.tabs{
+  display:flex;
+  gap:8px;
+  overflow:auto;
+  margin-bottom:15px;
+}
+.tabs button{
+  min-width:120px;
+}
+.active{background:#0d8a55}
+table{
+  width:100%;
+  border-collapse:collapse;
+  min-width:720px;
+}
+th,td{
+  border:1px solid #d9dee7;
+  padding:9px;
+  text-align:center;
+}
+th{
+  background:#edf2f8;
+}
+.table-wrap{overflow-x:auto}
+.total{
+  font-size:18px;
+  font-weight:bold;
+  margin-top:12px;
+}
+.small{font-size:12px;color:#687386}
+.hidden{display:none}
+.badge{
+  display:inline-block;
+  padding:4px 8px;
+  border-radius:20px;
+  background:#e8eef8;
+  font-size:12px;
+}
+.notice{
+  padding:10px;
+  background:#fff5d8;
+  border-radius:9px;
+  margin-bottom:12px;
+  font-size:13px;
+}
+@media(max-width:650px){
+  .grid{grid-template-columns:1fr}
+  .actions{grid-template-columns:repeat(2,1fr)}
+  header h1{font-size:21px}
+}
+@media print{
+  header,.tabs,.no-print,#entryCard,#settingsCard,#historyActions{
+    display:none!important;
+  }
+  body{background:white}
+  .card{box-shadow:none}
+  table{font-size:11px}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>🥛 MILK HISAB</h1>
+  <p>MMY & Aunty • Cow & Buffalo</p>
+</header>
+
+<div class="container">
+
+<!-- LOGIN -->
+<div id="loginCard" class="card">
+  <h2>🔐 Admin Login</h2>
+  <div class="notice">
+    Default Admin PIN: <b>1234</b>
+  </div>
+
+  <label>Admin PIN</label>
+  <input type="password" id="pinInput" placeholder="PIN डालें">
+
+  <button style="margin-top:10px" onclick="login()">Login</button>
+</div>
+
+<!-- MAIN APP -->
+<div id="app" class="hidden">
+
+<div class="tabs no-print">
+  <button id="tabEntry" class="active" onclick="showTab('entry')">Daily Entry</button>
+  <button id="tabHistory" onclick="showTab('history')">History</button>
+  <button id="tabBill" onclick="showTab('bill')">Monthly Bill</button>
+  <button id="tabSettings" onclick="showTab('settings')">Settings</button>
+</div>
+
+<!-- DAILY ENTRY -->
+<section id="entryTab">
+
+<div id="entryCard" class="card">
+  <h2>📝 Daily Milk Entry</h2>
+
+  <div class="grid">
+
+    <div>
+      <label>Person</label>
+      <select id="person">
+        <option value="MMY">MMY</option>
+        <option value="Aunty">Aunty</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Date</label>
+      <input type="date" id="date">
+    </div>
+
+    <div>
+      <label>🐄 Cow Quantity (Litre)</label>
+      <input type="number" id="cowQty" min="0" step="0.01" value="0">
+    </div>
+
+    <div>
+      <label>🐃 Buffalo Quantity (Litre)</label>
+      <input type="number" id="buffaloQty" min="0" step="0.01" value="0">
+    </div>
+
+  </div>
+
+  <div class="notice" style="margin-top:12px">
+    Current Cow Rate: ₹<b id="showCowRate">0</b>/L
+    &nbsp; | &nbsp;
+    Current Buffalo Rate: ₹<b id="showBuffaloRate">0</b>/L
+  </div>
+
+  <button class="btn-green" onclick="saveEntry()">
+    💾 Save Daily Entry
+  </button>
+
+  <p class="small">
+    0 litre भी valid है। अगर उस दिन दूध नहीं आया तो Cow और Buffalo दोनों में 0 डाल सकते हैं।
+  </p>
+</div>
+
+<div class="card">
+  <h2>📊 Quick Summary</h2>
+  <div class="grid">
+    <div>
+      <label>Person</label>
+      <select id="quickPerson" onchange="updateQuickSummary()">
+        <option>MMY</option>
+        <option>Aunty</option>
+      </select>
+    </div>
+    <div>
+      <label>Month</label>
+      <input type="month" id="quickMonth" onchange="updateQuickSummary()">
+    </div>
+  </div>
+
+  <div id="quickResult" class="total"></div>
+</div>
+
+</section>
+
+<!-- HISTORY -->
+<section id="historyTab" class="hidden">
+
+<div class="card">
+  <h2>📚 Daily History</h2>
+
+  <div class="grid no-print">
+    <div>
+      <label>Person</label>
+      <select id="historyPerson" onchange="renderHistory()">
+        <option>MMY</option>
+        <option>Aunty</option>
+      </select>
+    </div>
+    <div>
+      <label>Month</label>
+      <input type="month" id="historyMonth" onchange="renderHistory()">
+    </div>
+  </div>
+
+  <div id="historyTable" class="table-wrap"></div>
+</div>
+
+</section>
+
+<!-- BILL -->
+<section id="billTab" class="hidden">
+
+<div class="card">
+  <h2>🧾 Monthly Bill</h2>
+
+  <div class="grid no-print">
+    <div>
+      <label>Person</label>
+      <select id="billPerson">
+        <option>MMY</option>
+        <option>Aunty</option>
+      </select>
+    </div>
+
+    <div>
+      <label>Month</label>
+      <input type="month" id="billMonth">
+    </div>
+  </div>
+
+  <button class="no-print" style="margin-top:10px" onclick="generateBill()">
+    Generate Bill
+  </button>
+
+  <div id="billArea" style="margin-top:15px"></div>
+
+  <button class="btn-orange no-print" style="margin-top:10px"
+          onclick="window.print()">
+    🖨️ Print Bill
+  </button>
+</div>
+
+</section>
+
+<!-- SETTINGS -->
+<section id="settingsTab" class="hidden">
+
+<div id="settingsCard" class="card">
+  <h2>⚙️ Settings</h2>
+
+  <div class="grid">
+
+    <div>
+      <label>🐄 Cow Rate ₹/L</label>
+      <input type="number" id="cowRate" min="0" step="0.01">
+    </div>
+
+    <div>
+      <label>🐃 Buffalo Rate ₹/L</label>
+      <input type="number" id="buffaloRate" min="0" step="0.01">
+    </div>
+
+  </div>
+
+  <button class="btn-green" style="margin-top:12px" onclick="saveRates()">
+    💾 Save Rates
+  </button>
+
+  <hr style="margin:20px 0">
+
+  <h2>🔑 Admin PIN</h2>
+  <div class="grid">
+    <div>
+      <label>New PIN</label>
+      <input type="password" id="newPin" placeholder="नया PIN">
+    </div>
+    <div>
+      <label>Confirm PIN</label>
+      <input type="password" id="confirmPin" placeholder="फिर से PIN">
+    </div>
+  </div>
+
+  <button class="btn-orange" style="margin-top:12px" onclick="changePin()">
+    Change PIN
+  </button>
+
+  <hr style="margin:20px 0">
+
+  <h2>💾 Backup / Restore</h2>
+
+  <div class="actions">
+    <button onclick="backupData()">Backup</button>
+    <button onclick="document.getElementById('restoreFile').click()">
+      Restore
+    </button>
+    <button class="btn-red" onclick="clearAllData()">Delete All</button>
+    <button class="btn-gray" onclick="logout()">Logout</button>
+  </div>
+
+  <input type="file" id="restoreFile" accept=".json"
+         class="hidden" onchange="restoreData(event)">
+
+  <p class="small">
+    Backup file को सुरक्षित जगह पर रखना। Browser का data delete होने पर
+    backup से वापस लाया जा सकता है।
+  </p>
+
+</div>
+
+</section>
+
+</div>
+</div>
+
+<script>
+/* =========================
+   MILK HISAB APP
+   ========================= */
+
+let data = JSON.parse(localStorage.getItem("milkHisabData") || "[]");
+
+let settings = JSON.parse(
+  localStorage.getItem("milkHisabSettings") ||
+  '{"cowRate":0,"buffaloRate":0,"pin":"1234"}'
+);
+
+let editId = null;
+
+/* ---------- INIT ---------- */
+
+document.addEventListener("DOMContentLoaded", () => {
+
+  const today = new Date().toISOString().slice(0,10);
+  const month = today.slice(0,7);
+
+  document.getElementById("date").value = today;
+  document.getElementById("quickMonth").value = month;
+  document.getElementById("historyMonth").value = month;
+  document.getElementById("billMonth").value = month;
+
+  loadSettings();
+  updateQuickSummary();
+  updateRatesDisplay();
+
+});
+
+/* ---------- STORAGE ---------- */
+
+function saveStorage(){
+  localStorage.setItem("milkHisabData", JSON.stringify(data));
+  localStorage.setItem("milkHisabSettings", JSON.stringify(settings));
+}
+
+/* ---------- LOGIN ---------- */
+
+function login(){
+
+  const pin = document.getElementById("pinInput").value;
+
+  if(pin === settings.pin){
+
+    document.getElementById("loginCard").classList.add("hidden");
+    document.getElementById("app").classList.remove("hidden");
+
+    document.getElementById("pinInput").value = "";
+
+  }else{
+    alert("❌ गलत Admin PIN");
+  }
+}
+
+function logout(){
+  document.getElementById("app").classList.add("hidden");
+  document.getElementById("loginCard").classList.remove("hidden");
+}
+
+/* ---------- TABS ---------- */
+
+function showTab(tab){
+
+  const tabs = ["entry","history","bill","settings"];
+
+  tabs.forEach(t=>{
+    document.getElementById(t+"Tab").classList.add("hidden");
+  });
+
+  document.getElementById(tab+"Tab").classList.remove("hidden");
+
+  tabs.forEach(t=>{
+    const btn=document.getElementById("tab"+t.charAt(0).toUpperCase()+t.slice(1));
+    if(btn) btn.classList.remove("active");
+  });
+
+  const active=document.getElementById(
+    "tab"+tab.charAt(0).toUpperCase()+tab.slice(1)
+  );
+
+  if(active) active.classList.add("active");
+
+  if(tab==="history") renderHistory();
+  if(tab==="bill") generateBill();
+  if(tab==="settings") loadSettings();
+}
+
+/* ---------- RATES ---------- */
+
+function loadSettings(){
+
+  document.getElementById("cowRate").value = settings.cowRate;
+  document.getElementById("buffaloRate").value = settings.buffaloRate;
+
+  updateRatesDisplay();
+}
+
+function updateRatesDisplay(){
+
+  document.getElementById("showCowRate").textContent =
+    Number(settings.cowRate).toFixed(2);
+
+  document.getElementById("showBuffaloRate").textContent =
+    Number(settings.buffaloRate).toFixed(2);
+}
+
+function saveRates(){
+
+  const cow = Number(document.getElementById("cowRate").value);
+  const buffalo = Number(document.getElementById("buffaloRate").value);
+
+  if(cow < 0 || buffalo < 0){
+    alert("Rate 0 या उससे ज्यादा होना चाहिए.");
+    return;
+  }
+
+  settings.cowRate = cow;
+  settings.buffaloRate = buffalo;
+
+  saveStorage();
+  updateRatesDisplay();
+
+  alert("✅ Rates saved!");
+}
+
+/* ---------- PIN ---------- */
+
+function changePin(){
+
+  const p1=document.getElementById("newPin").value;
+  const p2=document.getElementById("confirmPin").value;
+
+  if(!p1){
+    alert("PIN डालो.");
+    return;
+  }
+
+  if(p1 !== p2){
+    alert("❌ दोनों PIN समान नहीं हैं.");
+    return;
+  }
+
+  settings.pin=p1;
+  saveStorage();
+
+  document.getElementById("newPin").value="";
+  document.getElementById("confirmPin").value="";
+
+  alert("✅ PIN बदल गया.");
+}
+
+/* ---------- SAVE ENTRY ---------- */
+
+function saveEntry(){
+
+  const person=document.getElementById("person").value;
+  const date=document.getElementById("date").value;
+
+  const cowQty=Number(document.getElementById("cowQty").value);
+  const buffaloQty=Number(document.getElementById("buffaloQty").value);
+
+  if(!date){
+    alert("Date select करो.");
+    return;
+  }
+
+  if(cowQty < 0 || buffaloQty < 0){
+    alert("Quantity 0 या उससे ज्यादा होनी चाहिए.");
+    return;
+  }
+
+  /* Duplicate check */
+
+  const duplicate=data.find(x =>
+    x.person===person &&
+    x.date===date &&
+    x.id!==editId
+  );
+
+  if(duplicate){
+    alert(
+      "❌ इस person की इस date की entry पहले से मौजूद है.\n" +
+      "History में जाकर Edit करो."
+    );
+    return;
+  }
+
+  const entry={
+    id: editId || Date.now().toString(),
+    person: person,
+    date: date,
+
+    cowQty: cowQty,
+    buffaloQty: buffaloQty,
+
+    /* RATE SNAPSHOT
+       पुराने bill पर rate change का असर नहीं होगा */
+    cowRate: Number(settings.cowRate),
+    buffaloRate: Number(settings.buffaloRate)
+  };
+
+  if(editId){
+
+    const index=data.findIndex(x=>x.id===editId);
+
+    if(index>=0){
+      data[index]=entry;
+    }
+
+    editId=null;
+
+  }else{
+    data.push(entry);
+  }
+
+  data.sort((a,b)=>a.date.localeCompare(b.date));
+
+  saveStorage();
+
+  document.getElementById("cowQty").value=0;
+  document.getElementById("buffaloQty").value=0;
+
+  alert("✅ Entry saved successfully!");
+
+  updateQuickSummary();
+  renderHistory();
+}
+
+/* ---------- AMOUNTS ---------- */
+
+function cowAmount(x){
+  return x.cowQty * x.cowRate;
+}
+
+function buffaloAmount(x){
+  return x.buffaloQty * x.buffaloRate;
+}
+
+function totalAmount(x){
+  return cowAmount(x) + buffaloAmount(x);
+}
+
+/* ---------- HISTORY ---------- */
+
+function renderHistory(){
+
+  const person=document.getElementById("historyPerson").value;
+  const month=document.getElementById("historyMonth").value;
+
+  let rows=data.filter(x =>
+    x.person===person &&
+    (!month || x.date.startsWith(month))
+  );
+
+  rows.sort((a,b)=>b.date.localeCompare(a.date));
+
+  if(rows.length===0){
+
+    document.getElementById("historyTable").innerHTML =
+      "<p>इस महीने की कोई entry नहीं है.</p>";
+
+    return;
+  }
+
+  let html=`
+  <table>
+  <thead>
+  <tr>
+    <th>Date</th>
+    <th>Cow Qty</th>
+    <th>Cow Rate</th>
+    <th>Cow Amount</th>
+    <th>Buffalo Qty</th>
+    <th>Buffalo Rate</th>
+    <th>Buffalo Amount</th>
+    <th>Daily Total</th>
+    <th class="no-print">Action</th>
+  </tr>
+  </thead>
+  <tbody>
+  `;
+
+  rows.forEach(x=>{
+
+    html+=`
+    <tr>
+      <td>${formatDate(x.date)}</td>
+
+      <td>${x.cowQty.toFixed(2)} L</td>
+      <td>₹${x.cowRate.toFixed(2)}</td>
+      <td>₹${cowAmount(x).toFixed(2)}</td>
+
+      <td>${x.buffaloQty.toFixed(2)} L</td>
+      <td>₹${x.buffaloRate.toFixed(2)}</td>
+      <td>₹${buffaloAmount(x).toFixed(2)}</td>
+
+      <td><b>₹${totalAmount(x).toFixed(2)}</b></td>
+
+      <td class="no-print">
+        <button onclick="editEntry('${x.id}')"
+                style="margin-bottom:5px">
+          Edit
+        </button>
+        <button class="btn-red"
+                onclick="deleteEntry('${x.id}')">
+          Delete
+        </button>
+      </td>
+    </tr>
+    `;
+  });
+
+  html+=`</tbody></table>`;
+
+  document.getElementById("historyTable").innerHTML=html;
+}
+
+/* ---------- EDIT ---------- */
+
+function editEntry(id){
+
+  const x=data.find(e=>e.id===id);
+
+  if(!x)return;
+
+  editId=id;
+
+  document.getElementById("person").value=x.person;
+  document.getElementById("date").value=x.date;
+  document.getElementById("cowQty").value=x.cowQty;
+  document.getElementById("buffaloQty").value=x.buffaloQty;
+
+  showTab("entry");
+
+  window.scrollTo({
+    top:0,
+    behavior:"smooth"
+  });
+}
+
+/* ---------- DELETE ---------- */
+
+function deleteEntry(id){
+
+  if(!confirm("क्या यह entry delete करनी है?")) return;
+
+  data=data.filter(x=>x.id!==id);
+
+  saveStorage();
+
+  renderHistory();
+  updateQuickSummary();
+
+  alert("✅ Entry deleted.");
+}
+
+/* ---------- MONTHLY BILL ---------- */
+
+function generateBill(){
+
+  const person=document.getElementById("billPerson").value;
+  const month=document.getElementById("billMonth").value;
+
+  if(!month)return;
+
+  let rows=data.filter(x =>
+    x.person===person &&
+    x.date.startsWith(month)
+  );
+
+  rows.sort((a,b)=>a.date.localeCompare(b.date));
+
+  let cowQty=0;
+  let buffaloQty=0;
+  let cowMoney=0;
+  let buffaloMoney=0;
+
+  rows.forEach(x=>{
+    cowQty+=x.cowQty;
+    buffaloQty+=x.buffaloQty;
+    cowMoney+=cowAmount(x);
+    buffaloMoney+=buffaloAmount(x);
+  });
+
+  const totalQty=cowQty+buffaloQty;
+  const totalMoney=cowMoney+buffaloMoney;
+
+  let html=`
+    <div style="text-align:center">
+      <h2>🥛 MILK HISAB</h2>
+      <h3>Monthly Milk Bill</h3>
+      <p><b>Person:</b> ${person}</p>
+      <p><b>Month:</b> ${month}</p>
+    </div>
+
+    <div class="table-wrap">
+    <table>
+      <thead>
+        <tr>
+          <th>Date</th>
+          <th>Cow Qty</th>
+          <th>Cow Amount</th>
+          <th>Buffalo Qty</th>
+          <th>Buffalo Amount</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody>
+  `;
+
+  if(rows.length===0){
+
+    html+=`
+      <tr>
+        <td colspan="6">No entries for this month</td>
+      </tr>
+    `;
+
+  }else{
+
+    rows.forEach(x=>{
+      html+=`
+      <tr>
+        <td>${formatDate(x.date)}</td>
+        <td>${x.cowQty.toFixed(2)} L</td>
+        <td>₹${cowAmount(x).toFixed(2)}</td>
+        <td>${x.buffaloQty.toFixed(2)} L</td>
+        <td>₹${buffaloAmount(x).toFixed(2)}</td>
+        <td><b>₹${totalAmount(x).toFixed(2)}</b></td>
+      </tr>
+      `;
+    });
+  }
+
+  html+=`
+      </tbody>
+      <tfoot>
+        <tr>
+          <th>TOTAL</th>
+          <th>${cowQty.toFixed(2)} L</th>
+          <th>₹${cowMoney.toFixed(2)}</th>
+          <th>${buffaloQty.toFixed(2)} L</th>
+          <th>₹${buffaloMoney.toFixed(2)}</th>
+          <th>₹${totalMoney.toFixed(2)}</th>
+        </tr>
+      </tfoot>
+    </table>
+    </div>
+
+    <div class="total">
+      🐄 Total Cow Milk: ${cowQty.toFixed(2)} L
+      <br>
+      🐃 Total Buffalo Milk: ${buffaloQty.toFixed(2)} L
+      <br>
+      🥛 Total Milk: ${totalQty.toFixed(2)} L
+      <br><br>
+      💰 Cow Amount: ₹${cowMoney.toFixed(2)}
+      <br>
+      💰 Buffalo Amount: ₹${buffaloMoney.toFixed(2)}
+      <br>
+      <hr>
+      💵 GRAND TOTAL: ₹${totalMoney.toFixed(2)}
+    </div>
+  `;
+
+  document.getElementById("billArea").innerHTML=html;
+}
+
+/* ---------- QUICK SUMMARY ---------- */
+
+function updateQuickSummary(){
+
+  const person=document.getElementById("quickPerson").value;
+  const month=document.getElementById("quickMonth").value;
+
+  let rows=data.filter(x =>
+    x.person===person &&
+    (!month || x.date.startsWith(month))
+  );
+
+  let cowQty=0;
+  let buffaloQty=0;
+  let money=0;
+
+  rows.forEach(x=>{
+    cowQty+=x.cowQty;
+    buffaloQty+=x.buffaloQty;
+    money+=totalAmount(x);
+  });
+
+  document.getElementById("quickResult").innerHTML=`
+    <span class="badge">${person}</span>
+    <br><br>
+    🐄 Cow: ${cowQty.toFixed(2)} L
+    <br>
+    🐃 Buffalo: ${buffaloQty.toFixed(2)} L
+    <br>
+    🥛 Total: ${(cowQty+buffaloQty).toFixed(2)} L
+    <br><br>
+    💰 Bill: ₹${money.toFixed(2)}
+  `;
+}
+
+/* ---------- BACKUP ---------- */
+
+function backupData(){
+
+  const backup={
+    app:"Milk Hisab",
+    version:1,
+    exportedAt:new Date().toISOString(),
+    data:data,
+    settings:settings
+  };
+
+  const blob=new Blob(
+    [JSON.stringify(backup,null,2)],
+    {type:"application/json"}
+  );
+
+  const url=URL.createObjectURL(blob);
+
+  const a=document.createElement("a");
+  a.href=url;
+  a.download="milk-hisab-backup.json";
+  a.click();
+
+  URL.revokeObjectURL(url);
+
+  alert("✅ Backup file तैयार है.");
+}
+
+/* ---------- RESTORE ---------- */
+
+function restoreData(event){
+
+  const file=event.target.files[0];
+
+  if(!file)return;
+
+  const reader=new FileReader();
+
+  reader.onload=function(e){
+
+    try{
+
+      const backup=JSON.parse(e.target.result);
+
+      if(!backup.data || !Array.isArray(backup.data)){
+        throw new Error("Invalid backup");
+      }
+
+      if(!confirm(
+        "Restore करने से current data replace हो जाएगा. Continue?"
+      )){
+        return;
+      }
+
+      data=backup.data;
+
+      if(backup.settings){
+        settings=backup.settings;
+      }
+
+      saveStorage();
+
+      loadSettings();
+      renderHistory();
+      updateQuickSummary();
+
+      alert("✅ Backup restore हो गया.");
+
+    }catch(err){
+
+      alert("❌ Backup file सही नहीं है.");
+
+    }
+
+    event.target.value="";
+  };
+
+  reader.readAsText(file);
+}
+
+/* ---------- DELETE ALL ---------- */
+
+function clearAllData(){
+
+  const text=prompt(
+    "सारा data delete करने के लिए DELETE लिखें:"
+  );
+
+  if(text==="DELETE"){
+
+    data=[];
+
+    saveStorage();
+
+    renderHistory();
+    updateQuickSummary();
+
+    alert("✅ पूरा data delete हो गया.");
+
+  }else{
+
+    alert("Delete cancel किया गया.");
+  }
+}
+
+/* ---------- DATE ---------- */
+
+function formatDate(date){
+
+  const p=date.split("-");
+
+  return p[2]+"-"+p[1]+"-"+p[0];
+}
+</script>
+
+</body>
+</html>
