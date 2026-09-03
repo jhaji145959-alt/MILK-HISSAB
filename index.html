@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>Milk Hisab</title>
-
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#173b70">
 <style>
 *{box-sizing:border-box}
 body{
@@ -983,6 +984,12 @@ function formatDate(date){
   return p[2]+"-"+p[1]+"-"+p[0];
 }
 </script>
-
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("./sw.js");
+  });
+}
+</script>
 </body>
 </html>
